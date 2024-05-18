@@ -4,64 +4,69 @@
  */
 #include "utils.h"
 
-void transpose(int N, double *src, double *dest) {
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < N; ++j) {
-            dest[j * N + i] = src[i * N + j];
-        }
+double *my_solver(int N, double *A, double *B) {
+  // Memory allocation
+  double *At = (double *)calloc(N, N * sizeof(double));
+  double *Bt = (double *)calloc(N, N * sizeof(double));
+  double *AtB = (double *)calloc(N, N * sizeof(double));
+  double *BA = (double *)calloc(N, N * sizeof(double));
+  double *sum = (double *)calloc(N, N * sizeof(double));
+  double *C = (double *)calloc(N, N * sizeof(double));
+
+  // Transpose B
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      Bt[j * N + i] = B[i * N + j];
     }
-}
+  }
 
-void multiply(int N, double *A, double *B, double *result) {
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < N; ++j) {
-            result[i * N + j] = 0.0;
-            for (int k = 0; k < N; ++k) {
-                result[i * N + j] += A[i * N + k] * B[k * N + j];
-            }
-        }
+  //   Transpose A
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j <= i; j++) {
+      At[i * N + j] = A[j * N + i];
     }
-}
+  }
 
-void add(int N, double *A, double *B, double *result) {
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < N; ++j) {
-            result[i * N + j] = A[i * N + j] + B[i * N + j];
-        }
+  // At * B = AtB
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      for (int k = 0; k <= i; k++) {
+        AtB[i * N + j] += At[i * N + k] * B[k * N + j];
+      }
     }
-}
+  }
 
-double* my_solver(int N, double *A, double* B) {
-    // Memory allocation
-    double *At = (double *)malloc(N * N * sizeof(double));
-    double *Bt = (double *)malloc(N * N * sizeof(double));
-    double *AtB = (double *)malloc(N * N * sizeof(double));
-    double *BA = (double *)malloc(N * N * sizeof(double));
-    double *sum = (double *)malloc(N * N * sizeof(double));
-    double *C = (double *)malloc(N * N * sizeof(double));
+  // B * A = BA
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      for (int k = 0; k <= j; k++) {
+        BA[i * N + j] += B[i * N + k] * A[k * N + j];
+      }
+    }
+  }
 
-    // Tranpose A and B
-    transpose(N, A, At);
-    transpose(N, B, Bt);
+  // AtB + BA = sum
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      sum[i * N + j] = AtB[i * N + j] + BA[i * N + j];
+    }
+  }
 
-    // At * B = AtB
-    multiply(N, At, B, AtB);
+  // sum * Bt = C
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      for (int k = 0; k < N; k++) {
+        C[i * N + j] += sum[i * N + k] * Bt[k * N + j];
+      }
+    }
+  }
 
-    // B * A = BA
-    multiply(N, B, A, BA);
+  // Free memory
+  free(At);
+  free(Bt);
+  free(AtB);
+  free(BA);
+  free(sum);
 
-    // AtB + BA = sum
-    add(N, AtB, BA, sum);
-
-    // (sum) * Bt = C
-    multiply(N, sum, Bt, C);
-
-    // Free memory
-    free(At);
-    free(Bt);
-    free(AtB);
-    free(BA);
-    free(sum);
-
-    return C;
+  return C;
 }
