@@ -6,12 +6,12 @@
 
 double *my_solver(int N, double *A, double *B) {
   // Memory allocation
-  double *At = (double *)calloc(N, N * sizeof(double));
-  double *Bt = (double *)calloc(N, N * sizeof(double));
-  double *AtB = (double *)calloc(N, N * sizeof(double));
-  double *BA = (double *)calloc(N, N * sizeof(double));
-  double *sum = (double *)calloc(N, N * sizeof(double));
-  double *C = (double *)calloc(N, N * sizeof(double));
+  double *At = (double *)calloc(N * N, sizeof(double));
+  double *Bt = (double *)calloc(N * N, * sizeof(double));
+  double *AtB = (double *)calloc(N * N, * sizeof(double));
+  double *BA = (double *)calloc(N * N, * sizeof(double));
+  double *sum = (double *)calloc(N * N, * sizeof(double));
+  double *C = (double *)calloc(N * N, * sizeof(double));
 
   // Transpose B
   for (int i = 0; i < N; i++) {
