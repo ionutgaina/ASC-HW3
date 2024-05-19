@@ -7,7 +7,7 @@
 /*
  * Add your optimized implementation here
  */
-#define BLOCK_SIZE 400
+#define BLOCK_SIZE 40
 double *my_solver(int N, double *A, double *B) {
   // Memory allocation
   double *At = (double *)calloc(N * N, sizeof(double));
