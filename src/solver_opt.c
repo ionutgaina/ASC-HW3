@@ -18,15 +18,23 @@ double *my_solver(int N, double *A, double *B) {
 
   // Transpose B
   for (int i = 0; i < N; i++) {
+    double *pi = &B[i * N];
+    double *pj = &Bt[i];
     for (int j = 0; j < N; j++) {
-      Bt[j * N + i] = B[i * N + j];
+      *pj = *pi;
+      ++pi;
+      pj += N;
     }
   }
 
   //   Transpose A
   for (int i = 0; i < N; i++) {
+    double *pi = &At[i * N];
+    double *pj = &A[i];
     for (int j = 0; j <= i; j++) {
-      At[i * N + j] = A[j * N + i];
+      *pi = *pj;
+      pj += N;
+      ++pi;
     }
   }
 
@@ -67,8 +75,14 @@ double *my_solver(int N, double *A, double *B) {
 
   // AtB + BA = sum
   for (int i = 0; i < N; i++) {
+    double *psum = &sum[i * N];
+    double *patb = &AtB[i * N];
+    double *pa = &BA[i * N];
     for (int j = 0; j < N; j++) {
-      sum[i * N + j] = AtB[i * N + j] + BA[i * N + j];
+      *psum = *patb + *pa;
+      ++patb;
+      ++pa;
+      ++psum;
     }
   }
 
