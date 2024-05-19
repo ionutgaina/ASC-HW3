@@ -7,11 +7,11 @@
 double *my_solver(int N, double *A, double *B) {
   // Memory allocation
   double *At = (double *)calloc(N * N, sizeof(double));
-  double *Bt = (double *)calloc(N * N, sizeof(double));
-  double *AtB = (double *)calloc(N * N, sizeof(double));
-  double *BA = (double *)calloc(N * N, sizeof(double));
-  double *sum = (double *)calloc(N * N, sizeof(double));
-  double *C = (double *)calloc(N * N, sizeof(double));
+  double *Bt = (double *)malloc(N * N * sizeof(double));
+  double *AtB = (double *)malloc(N * N * sizeof(double));
+  double *BA = (double *)malloc(N * N * sizeof(double));
+  double *sum = (double *)malloc(N * N * sizeof(double));
+  double *C = (double *)malloc(N * N * sizeof(double));
 
   // Transpose B
   for (int i = 0; i < N; i++) {
@@ -55,7 +55,7 @@ double *my_solver(int N, double *A, double *B) {
   // sum * Bt = C
   for (int i = 0; i < N; i++) {
     for (int j = 0; j < N; j++) {
-      for (int k = 0; k < N; k++) {
+      for (int k = 0; k <= j; k++) {
         C[i * N + j] += sum[i * N + k] * Bt[k * N + j];
       }
     }
