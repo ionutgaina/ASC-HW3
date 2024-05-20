@@ -7,21 +7,24 @@
 /*
  * Add your optimized implementation here
  */
-#define BLOCK_SIZE 40
+#define BLOCK_SIZE 200
 double *my_solver(int N, double *A, double *B) {
   // Memory allocation
-  double *At = (double *)calloc(N * N, sizeof(double));
-  double *Bt = (double *)malloc(N * N * sizeof(double));
-  double *AtB = (double *)malloc(N * N * sizeof(double));
-  double *BA = (double *)malloc(N * N * sizeof(double));
-  double *sum = (double *)malloc(N * N * sizeof(double));
-  double *C = (double *)malloc(N * N * sizeof(double));
+  register const int size = N * N * sizeof(double);
+  double *At = (double *)malloc(size);
+  double *Bt = (double *)malloc(size);
+  double *AtB = (double *)malloc(size);
+  double *BA = (double *)malloc(size);
+  double *sum = (double *)malloc(size);
+  double *C = (double *)malloc(size);
+
+  register unsigned int i, j, k, bi, bj;
 
   // Transpose B
-  for (int i = 0; i < N; i++) {
-    double *pi = &B[i * N];
-    double *pj = &Bt[i];
-    for (int j = 0; j < N; j++) {
+  for (i = 0; i < N; ++i) {
+    register double *pi = &B[i * N];
+    register double *pj = &Bt[i];
+    for (j = 0; j < N; ++j) {
       *pj = *pi;
       ++pi;
       pj += N;
@@ -29,28 +32,32 @@ double *my_solver(int N, double *A, double *B) {
   }
 
   //   Transpose A
-  for (int i = 0; i < N; i++) {
-    double *pi = &At[i * N];
-    double *pj = &A[i];
-    for (int j = 0; j <= i; j++) {
+  for (i = 0; i < N; ++i) {
+    register double *pi = &At[i * N];
+    register double *pj = &A[i];
+    for (j = 0; j <= i; ++j) {
       *pi = *pj;
       pj += N;
+      ++pi;
+    }
+    for (j = i + 1; j < N; ++j) {
+      *pi = 0;
       ++pi;
     }
   }
 
   // At * B = AtB
-  for (int bi = 0; bi < N; bi += BLOCK_SIZE) {
-    for (int bj = 0; bj < N; bj += BLOCK_SIZE) {
-      for (int i = bi; i < N && i < bi + BLOCK_SIZE; i++) {
-        double *orig_pa = &At[i * N];
+  for (bi = 0; bi < N; bi += BLOCK_SIZE) {
+    for (bj = 0; bj < N; bj += BLOCK_SIZE) {
+      for (i = bi; i < N && i < bi + BLOCK_SIZE; ++i) {
+        register double *orig_pa = &At[i * N];
 
-        for (int j = bj; j < N && j < bj + BLOCK_SIZE; j++) {
-          double *pa = orig_pa;
-          double *pb = &B[j];
+        for (j = bj; j < N && j < bj + BLOCK_SIZE; ++j) {
+          register double *pa = orig_pa;
+          register double *pb = &B[j];
 
           register double suma = 0;
-          for (int k = 0; k <= i; k++) {
+          for (k = 0; k <= i; ++k) {
             suma += *pa * *pb;
             ++pa;
             pb += N;
@@ -62,16 +69,16 @@ double *my_solver(int N, double *A, double *B) {
   }
 
   // B * A = BA
-  for (int bi = 0; bi < N; bi += BLOCK_SIZE) {
-    for (int bj = 0; bj < N; bj += BLOCK_SIZE) {
-      for (int i = bi; i < N && i < bi + BLOCK_SIZE; i++) {
-        double *orig_pb = &B[i * N];
-        for (int j = bj; j < N && j < bj + BLOCK_SIZE; j++) {
-          double *pb = orig_pb;
-          double *pa = &A[j];
+  for (bi = 0; bi < N; bi += BLOCK_SIZE) {
+    for (bj = 0; bj < N; bj += BLOCK_SIZE) {
+      for (i = bi; i < N && i < bi + BLOCK_SIZE; ++i) {
+        register double *orig_pb = &B[i * N];
+        for (j = bj; j < N && j < bj + BLOCK_SIZE; ++j) {
+          register double *pb = orig_pb;
+          register double *pa = &A[j];
 
           register double suma = 0;
-          for (int k = 0; k <= j; k++) {
+          for (k = 0; k <= j; ++k) {
             suma += *pa * *pb;
             ++pb;
             pa += N;
@@ -83,14 +90,14 @@ double *my_solver(int N, double *A, double *B) {
   }
 
   // AtB + BA = sum
-  for (int bi = 0; bi < N; bi += BLOCK_SIZE) {
-    for (int bj = 0; bj < N; bj += BLOCK_SIZE) {
-      for (int i = bi; i < bi + BLOCK_SIZE && i < N; i++) {
-        double *psum = &sum[i * N + bj];
-        double *patb = &AtB[i * N + bj];
-        double *pa = &BA[i * N + bj];
+  for (bi = 0; bi < N; bi += BLOCK_SIZE) {
+    for (bj = 0; bj < N; bj += BLOCK_SIZE) {
+      for (i = bi; i < bi + BLOCK_SIZE && i < N; ++i) {
+        register double *psum = &sum[i * N + bj];
+        register double *patb = &AtB[i * N + bj];
+        register double *pa = &BA[i * N + bj];
 
-        for (int j = bj; j < bj + BLOCK_SIZE && j < N; j++) {
+        for (j = bj; j < bj + BLOCK_SIZE && j < N; ++j) {
           *psum = *patb + *pa;
           ++patb;
           ++pa;
@@ -101,15 +108,15 @@ double *my_solver(int N, double *A, double *B) {
   }
 
   // sum * Bt = C
-  for (int bi = 0; bi < N; bi += BLOCK_SIZE) {
-    for (int bj = 0; bj < N; bj += BLOCK_SIZE) {
-      for (int i = bi; i < N && i < bi + BLOCK_SIZE; i++) {
-        double *orig_sum = &sum[i * N];
-        for (int j = bj; j < N && j < bj + BLOCK_SIZE; j++) {
-          double *pa = orig_sum;
-          double *pb = &Bt[j];
+  for (bi = 0; bi < N; bi += BLOCK_SIZE) {
+    for (bj = 0; bj < N; bj += BLOCK_SIZE) {
+      for (i = bi; i < N && i < bi + BLOCK_SIZE; ++i) {
+        register double *orig_sum = &sum[i * N];
+        for (j = bj; j < N && j < bj + BLOCK_SIZE; ++j) {
+          register double *pa = orig_sum;
+          register double *pb = &Bt[j];
           register double suma = 0;
-          for (int k = 0; k < N; k++) {
+          for (k = 0; k < N; ++k) {
             suma += *pa * *pb;
             ++pa;
             pb += N;
